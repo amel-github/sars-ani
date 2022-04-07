@@ -1,6 +1,6 @@
 ---
 name: Suggest changes to the dataset
-about: Flag an error int he data.
+about: Flag an error in the data.
 title: ''
 labels: ''
 assignees: ''
