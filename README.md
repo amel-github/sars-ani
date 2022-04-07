@@ -355,7 +355,7 @@ primary source (when applicable). <br>
 
 #### Note
 
-We have considered the two following values thorough the dataset: <br>
+We have considered the two following values throughout the dataset: <br>
 
 -   <code>NS</code> Not specified: the information would be relevant for
     the event but the information was not mentioned in the primary or
