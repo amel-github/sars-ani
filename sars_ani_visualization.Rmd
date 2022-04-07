@@ -530,7 +530,7 @@ NS = Not specified.
 \newpage
 
 ## Which SARS-CoV-2 variants have been identified in the different animal species? 
-The figures describe the number (and percentages) of **events** (one event may include one or more than one cases).
+The figures describe the number (and percentages) of **events** (one event may include one or more than one case).
 ```{r variants_perc, fig.height=15, fig.width=15, echo=FALSE, message=FALSE, warning=FALSE}
 ## Percentage of reported variants among reported events
 variants_df <- sars_df %>%
@@ -597,7 +597,7 @@ ggsave("Fig4.eps", fallback_resolution=600, width = 22, height = 20, device=cair
 \newpage
 
 ## What are the reported clinical signs allegedly associated to natural SARS-CoV-2 infections in the different animal species?
-The following bar plots summarize clinical signs of SARS-CoV-2 in some animal species after natural infection. The figures show the **number of events** in which each clinical sign was reported (one event may include one or more than one cases).<br>  
+The following bar plots summarize clinical signs of SARS-CoV-2 in some animal species after natural infection. The figures show the **number of events** in which each clinical sign was reported (one event may include one or more than one case).<br>  
 
 ### Cats
 ```{r symptoms_cats, echo=FALSE, message=FALSE, warning=FALSE}
