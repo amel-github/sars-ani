@@ -1,0 +1,739 @@
+---
+title: 'SARS-ANI: A Global Open Access Dataset of Reported SARS-CoV-2 Events in Animals
+  - Visualization'
+author: ''
+date: '2022-04-05'
+output:
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+# Prepare the R environment: install packages
+
+knitr::opts_chunk$set(echo = TRUE, fig.align   = 'center')
+
+# Define requested packages
+my_packages <- c("dplyr", "ggplot2", "viridis", "ggalluvial","ggfittext","randomcoloR", "reshape2", "rworldmap", "stringr", "webr" , "knitr", "kableExtra","ggfittext" , "visNetwork", "scales")  
+
+# Extract not installed packages
+not_installed <- my_packages[!(my_packages %in% installed.packages()[ , "Package"])]    
+
+# Install not installed packages
+if(length(not_installed)) install.packages(not_installed) 
+
+devtools::install_github("sctyner/geomnet")
+
+# Load libraries
+library(dplyr)
+library(ggplot2)
+library(viridis)
+library(ggalluvial)
+library(ggfittext)
+library(randomcoloR)
+library(reshape2)
+library(rworldmap)
+library(stringr)
+require(webr)
+library(knitr)
+library(kableExtra)
+library(ggfittext)
+library(visNetwork)
+library(geomnet)
+library(scales)
+```
+
+
+## Background
+
+The severe acute respiratory syndrome coronavirus 2 (SARS-CoV-2) most probably emerged from an animal source and subsequently spilled over to the human population in 2019, in China. Despite its zoonotic origin, the current COVID-19 pandemic is being sustained through human-to-human transmission. <br>  
+
+Animal infections with SARS-CoV-2 have been reported by several countries. A wide range of animal species have proven to be susceptible to SARS-CoV-2 either via natural and/or experimental infection.  <br>  
+
+Collecting and sharing data on reported SARS-CoV-2 natural infections in animals is of critical importance to assess their epidemiological significance for animal and human health, as well as their implications for biodiversity and conservation.  <br>  
+
+```{r import, echo=FALSE, message=FALSE, warning=FALSE}
+
+# Import the data
+sars_df <- read.csv("sars_ani_data.csv", encoding="UTF-8") 
+
+# Create a column "Date" where Date = date_confirmed and Date = date_reported if date_confirmed is missing and Date = date_published if the two others are missing.
+# Remove trailing and leading white spaces
+sars_df <- sars_df %>%
+  mutate (Date = if_else(
+    date_confirmed %in% c( "NS", NA,""), date_reported , date_confirmed)) %>%
+   mutate (Date = if_else(
+   Date %in% c( "NS", NA,""), date_published, Date)) %>% 
+  mutate(across(where(is.character), str_trim)) 
+
+# Transform the column "Date" into format Date that will be recognized in R
+sars_df$Date <- as.Date(sars_df$Date , format = "%Y-%m-%d")
+
+# Total number of unique reports included to extract the data
+reports <- c(sars_df$archive_event_number, sars_df$secondary_source_ID)
+unique_rep <- length(unique(reports))
+```
+&nbsp;
+&nbsp;
+
+
+## Overview of the Dataset
+We consider as an **event** when one single case or several epidemiologically related cases were identified by the presence of viral RNA (proof of infection) and/or antibodies (proof of exposure) in an animal. Epidemiologically related cases include e.g. animals belonging to the same farm, captive animals housed together, pets belonging to the same household, or animals sampled within the same (generally transversal) study, featuring similar event and patient attributes, i.e. they underwent the same laboratory test(s) and showed the same results (including variant), exhibited the same symptoms and disease outcome, and were confirmed, reported (when applicable), and published on the same date (e.g. when pets of the same species sharing the same household showed different symptoms, they are reported as two distinct events). Events include follow-up history reports of outbreaks (e.g. follow-up on the clinical status of the animal, variant identification after case confirmation). <br>   
+
+The SARS-ANI Dataset presents `r nrow(sars_df)` records of SARS-CoV-2 events in wild, farmed, domestic, and captive animals, which occurred between `r min(sars_df$Date)` and `r max(sars_df$Date)` and have been documented in `r length(unique(reports))` ProMED-mail and OIE-WAHIS reports. <br>   
+
+Natural infections with SARS-CoV-2 have been reported in `r length (unique(sars_df$species))` animal species, belonging to `r length(unique(sars_df$family))` families in `r length(unique(sars_df$country_name))` countries worldwide (covering `r length(unique(sars_df$subnational_administration))` subnational administrative areas).<br>   
+
+The SARS-ANI dashboard, providing interactive visualizations of the dynamic version of the SARS-ANI Dataset, is available at: https://vis.csh.ac.at/sars-ani <br>   
+
+\newpage
+
+## Remarks
+* The number of reported SARS-CoV-2 events in animals in each country depends on the reporting strategy of the country to the OIE, the intensity of the research and surveillance strategy in the different animal species (e.g. whether pets from infected households are systematically investigated or not), the media coverage on the diagnosed cases, and the uptake of the reported event by the ProMED-mail team. <br>  
+
+* Number of cases and deaths in mink were inconsistently reported, therefore data on SARS-CoV-2 events in mink are partial and does not allow accurate estimation of the impact of SARS-CoV-2 in the mink population. <br>   
+
+
+\newpage
+
+## How many SARS-CoV-2 events in animals have been published ? 
+The figure includes follow-up history reports of outbreaks. Date of publication is used.
+```{r number_reports, fig.height=5, fig.width=5, echo=FALSE, message=FALSE, warning=FALSE}
+# Cumulative number of SARS-Cov-2 events in animals since the beginning of the COVID-19 pandemic. Date of publication is used.
+# Note: this does not represent number of outbreaks but number of events, i.e. follow-up history reports are included
+
+nb_report_day<- sars_df %>%
+  mutate (date_published = as.Date (date_published , format = "%Y-%m-%d")) %>%
+  group_by(date_published) %>%
+  summarize(n()) %>% 
+  arrange(date_published) %>% 
+  rename(number_reports = "n()") %>% 
+  mutate(cum_sum=cumsum(number_reports))
+
+# Make  the curve of the cumulative number of events
+plot_day_cum <- ggplot(nb_report_day , aes(x=date_published, y=cum_sum, group = 1)) + 
+  geom_line()+
+  geom_point()+ # remove this line if you want to remove the dots on the plot line (or add "#" in front of this line)
+  scale_x_date(limits= as.Date(c(min(nb_report_day$date_published)-7, max(nb_report_day$date_published)+7)), date_breaks = "3 week", date_labels =  "%Y-%m-%d", expand = c(0, 0))+
+  xlab("Date of publication") +
+  ylab("Cumulative number of events")+
+  theme_bw()+
+  theme(axis.text.x = element_text(angle=90,vjust = 0.5, hjust=.50))+
+  theme (axis.title.x = element_text(vjust= -1),
+         axis.title.y = element_text(vjust= 3),
+         text = element_text(size = 10))
+plot_day_cum
+```
+\newpage
+
+## Where did SARS-CoV-2 events in animals occur? 
+
+### For each country, how many species have been reported as infected with or exposed to SARS-CoV-2?
+
+```{r map_species, fig.height=10, fig.width=21, fig.fullwidth=TRUE, echo=FALSE, message=FALSE, warning=FALSE}
+# Get the world map
+world_map <- map_data("world")
+
+# Check that countries names are similar between the two datasets (world map and SARS-ANI data)  
+countries_world <- sort(unique(world_map$region))
+countries_sars <- sort(unique(sars_df$country_name))
+
+intersect <- intersect(countries_world,countries_sars )
+#length(intersect) == length(countries_sars) # if FALSE some country names have to be correct
+
+# Find values to correct
+#setdiff(countries_sars, countries_world)
+
+# Format the data to plot
+# Correct countries names to match the world map data
+sars_to_plot_species <- sars_df %>%
+  mutate(country_name = replace(country_name, country_name == "United States", "USA")) %>%
+  mutate(country_name = replace(country_name, country_name == "United Kingdom", "UK")) %>%
+  mutate(country_name = replace(country_name, country_name == "Republic of Korea", "South Korea")) %>%
+  mutate(country_name = replace(country_name, country_name == "Russian Federation", "Russia")) %>%
+  group_by(country_name, latin_name) %>% 
+  tally()  %>% 
+  mutate(unique_species = n_distinct(latin_name)) %>%
+  select(country_name,unique_species ) %>%
+  distinct()
+
+# Add species number to world map
+sars.to.map <- left_join( world_map, sars_to_plot_species, by = c("region"="country_name"))
+
+# Plot the map of the number of species with SARS-CoV-2 reported cases per countries
+sars.to.map %>%
+  filter (region != "Antarctica") %>%
+  ggplot(aes(long, lat, group = group))+
+  geom_polygon(aes(fill = unique_species), color = "black") + 
+  scale_fill_viridis_c(name = "Number of unique species", option = 'D', trans = "log2",  breaks = trans_breaks("log2", function(x) 2^x),na.value="grey85") +
+  theme(axis.text.x = element_blank(),
+        axis.text.y = element_blank(), axis.ticks.x = element_blank(),
+        axis.ticks.y = element_blank(), axis.title = element_blank(),
+        plot.margin = unit(0 * c(-1.5, -1.5, -1.5, -1.5), "lines"))+ 
+  xlab ("Longitude") +
+  ylab ("Latitude") +
+  theme_bw()+ 
+  theme(legend.position="bottom") +
+  guides(fill = guide_colourbar(barwidth = 20, barheight = 2)) +
+  theme(text = element_text(size = 20)) 
+```
+&nbsp;
+&nbsp;
+```{r table_countries_spec, echo=FALSE, message=FALSE, warning=FALSE}
+# Print the table of the number of affected species per country
+colnames(sars_to_plot_species ) <- c("Country", "Number of species")
+
+kable(sars_to_plot_species  , booktabs = T,
+             caption = "Number of unique animal species with reported natural SARS-CoV-2 infection or exposure per country.")
+```
+\newpage
+
+### For each country, how many outbreaks of SARS-CoV-2 have been reported in animals?
+Outbreak: Occurrence of one or more cases in an epidemiological unit. <br>   
+*Outbreaks exclude follow-up history reports of SARS-CoV-2 events while two or more events in which animals are epidemiologically related by the link "living together" count for one single outbreak.* <br>  
+
+```{r map_outbreaks, fig.height=10, fig.width=21, fig.fullwidth=TRUE, echo=FALSE, message=FALSE, warning=FALSE}
+# Format the data to be plotted (keep outbreaks only, aggregate per country)
+sars_to_plot_outbreaks <- sars_df %>%
+  mutate(country_name = replace(country_name, country_name == "United States", "USA")) %>%
+  mutate(country_name = replace(country_name, country_name == "United Kingdom", "UK")) %>%
+  mutate(country_name = replace(country_name, country_name == "Republic of Korea", "South Korea")) %>%
+  mutate(country_name = replace(country_name, country_name == "Russian Federation", "Russia")) %>%
+  filter (!related_to_other_entries %in% c("updated by", "living together")) %>% # follow-up history reports are removed, only the last update is kept (so that the number of cases or outbreaks -depending on the question- is only counted once) AND for epidemiologically related events in which animals are living together (they describe one single outbreak), only one event is included.
+  group_by(country_name) %>% 
+  tally()
+
+# Add outbreak number to world map
+sars.to.map_2 <- left_join( world_map, sars_to_plot_outbreaks, by = c("region"="country_name"))
+
+sars.to.map_2 %>%
+  filter (region != "Antarctica") %>% # crop the map
+  ggplot(aes(long, lat, group = group))+
+  geom_polygon(aes(fill = n), color = "black") + 
+  theme(axis.text.x = element_blank(),
+        axis.text.y = element_blank(), axis.ticks.x = element_blank(),
+        axis.ticks.y = element_blank(), axis.title = element_blank(),
+        plot.margin = unit(0 * c(-1.5, -1.5, -1.5, -1.5), "lines"))+ 
+  xlab ("Longitude") +
+  ylab ("Latitude") +
+  theme_bw()+ 
+  theme(legend.position="bottom") +
+  scale_fill_viridis_c(name = "Number of reported outbreaks", option = 'D', trans = "log2",  breaks = trans_breaks("log2", function(x) 2^x),na.value="grey85") +  
+  guides(fill = guide_colourbar(barwidth = 20, barheight = 2)) +
+  theme(text = element_text(size = 20)) 
+
+# Export Figure 2
+# Font size needs to be adapted for export in eps or tiff format
+Fig2 <- sars.to.map_2 %>%
+  filter (region != "Antarctica") %>% # crop the map
+  ggplot(aes(long, lat, group = group))+
+  geom_polygon(aes(fill = n), color = "black") + 
+  theme(axis.text.x = element_blank(),
+        axis.text.y = element_blank(), axis.ticks.x = element_blank(),
+        axis.ticks.y = element_blank(), axis.title = element_blank(),
+        plot.margin = unit(0 * c(-1.5, -1.5, -1.5, -1.5), "lines"))+ 
+  xlab ("Longitude") +
+  ylab ("Latitude") +
+  theme_bw()+ 
+  theme(legend.position="bottom") +
+  scale_fill_viridis_c(name = "Number of reported outbreaks", option = 'D', trans = "log2", breaks = trans_breaks("log2", function(x) 2^x),na.value="grey85") +  
+  guides(fill = guide_colourbar(barwidth = 8, barheight = 1)) +
+  theme(text = element_text(size = 12)) 
+
+ggsave("Fig2.eps", Fig2 , width = 18, height = 12, units="cm", dpi = 600) 
+ggsave("Fig2.tiff", Fig2 , width = 18, height = 12, units="cm", dpi = 600) 
+```  
+  
+```{r table_countries_outb, echo=FALSE, message=FALSE, warning=FALSE}
+
+sars_to_plot_outbreaks_2 <- sars_to_plot_outbreaks %>%
+  arrange(-n)
+
+colnames(sars_to_plot_outbreaks_2) <- c("Country", "Number of outbreaks")
+
+kable(sars_to_plot_outbreaks_2, booktabs = T,
+             caption = "Number of reported SARS-CoV-2 outbreaks per country.")
+```
+
+\newpage
+
+## How many SARS-CoV-2 cases (infections and/or exposures) have been reported per animal species? 
+
+### Family, Latin name, common name of the animal species mentioned in the dataset, and reported number of SARS-CoV-2 cases.  <br> 
+
+*Latin name for the species "hamster" is inconsistently reported and is therefore given the value "NS" when not specified.* <br>  
+*Number of cases is reported inconsistently in mink (data on the number of cases in mink is missing most of the time). Therefore, the number of diagnosed cases is largely under-estimated in mink. This is also true for deer, but to a lesser extent.* <br>  
+&nbsp;
+```{r species_families, echo=FALSE, message=FALSE, warning=FALSE}
+table_species <- sars_df %>%
+   filter (related_to_other_entries != "updated by") %>% # follow-up history reports are removed, only the last update is kept (so that the number of cases or outbreaks -depending on the question- is only counted once)
+  mutate (number_cases = replace(number_cases, number_cases == "NS", 1)) %>% # change NS to 1 so that we count 1 case for each missing value. I put 1 so that the species appears on the graph. 
+  mutate(number_cases = as.numeric(as.character(number_cases))) %>%
+  group_by(family, latin_name, species) %>% 
+  summarise(number_cases_tot= sum(number_cases)) %>%
+  arrange(-number_cases_tot)
+```
+
+The dataset reports `r sum(table_species$number_cases_tot)` cases in total (we counted one case for any missing value on the number of cases).
+
+```{r species_families_table, echo=FALSE, message=FALSE, warning=FALSE}
+# Table of the data
+colnames(table_species) <- c("Family", "Latin name", "Common name", "Number cases")
+kable(table_species, booktabs = T,
+             caption = "Number of reported SARS-CoV-2 cases (infections and/or exposures) per animal species.")
+```
+
+\newpage
+
+```{r species_families_pie, fig.height=15, fig.width=15, echo=FALSE, message=FALSE, warning=FALSE}
+colnames(table_species) <- c("Family", "Latin_name", "Common_name", "Number_cases")
+PieDonut(table_species,aes(pies=Family,donuts=Common_name), selected=2,labelposition=1,title="", r0=0,
+         showPieName=FALSE, pieLabelSize = 4, donutLabelSize = 5)
+``` 
+Note: For each species, we counted one case for any missing value on the number of cases.
+
+\newpage
+
+## How many SARS-CoV2 cases (infections or exposures) have been reported per animal species and country?
+
+The number of cases in mink is inconsistently (or even not at all) reported. Therefore, the number of cases shown here largely under-estimate the true number of cases in this species.
+```{r species_countries_latin, fig.height=14, fig.width=18, echo=FALSE, message=FALSE, warning=FALSE}
+# Use a heat map to visualize the data
+sars_df %>%
+  filter (related_to_other_entries != "updated by") %>% # follow-up history reports are removed, only the last update is kept (so that the number of cases or outbreaks -depending on the question- is only counted once)
+  mutate(latin_name = replace(latin_name , latin_name  == "NS", "hamster")) %>% # replace missing value for hamster
+  group_by(latin_name,reason_for_testing) %>%
+  mutate (number_cases = replace(number_cases, number_cases == "NS", NA)) %>% # change NS to NA (mostly data on mink --> could be replaced by average size of mink farm for each country?)
+  mutate(number_cases = as.numeric(as.character(number_cases))) %>%
+  group_by(country_name, latin_name) %>% 
+  summarize (number_cases_tot = sum(number_cases)) %>% 
+  ggplot(aes(country_name, latin_name, fill= number_cases_tot)) + 
+  geom_tile(color = "white") +
+  coord_fixed() + 
+  xlab("") + 
+  ylab ("Animal species")+
+  theme(axis.text.x = element_text(angle=90, hjust=1, vjust = 0.5)) +
+  theme (axis.title.x = element_text(vjust= -1), 
+         axis.title.y = element_text(vjust= 3))+
+  scale_fill_viridis_c(option = 'D', trans = "log2",  breaks = trans_breaks("log2", function(x) 2^x), name = "Number of cases", na.value = "firebrick4") + # NA values (was NS in the original dataset) are colored in firebrick
+  guides(fill = guide_colourbar(barwidth = 2, barheight = 10)) +
+  theme(text = element_text(size = 24)) 
+```
+Red color = Value non available.
+
+
+\newpage
+
+## How many SARS-CoV-2 outbreaks have been reported per animal species and country?
+Outbreak: Occurrence of one or more cases in an epidemiological unit. <br>   
+*Outbreaks exclude follow-up history reports of SARS-CoV-2 events while two or more events in which animals are epidemiologically related by the link "living together" count for one single outbreak.* <br>  
+```{r outbreaks, fig.height=14, fig.width=18,echo=FALSE, message=FALSE, warning=FALSE}
+sars_df %>%
+  filter (!related_to_other_entries %in% c("updated by", "living together")) %>% # follow-up history reports are removed, only the last update is kept (so that the number of cases or outbreaks -depending on the question- is only counted once) AND for epidemiologically related events in which animals are living together (they describe one single outbreak), only one event is included.
+  group_by(country_name, latin_name) %>% 
+  mutate(latin_name = replace(latin_name , latin_name  == "NS", "hamster")) %>% # replace missing value for the hamster name
+  tally() %>% # Count the number of outbreaks
+  ggplot(aes(country_name, latin_name, fill= n)) +
+  geom_tile(color = "white") +
+  coord_fixed() + 
+  xlab("") + 
+  ylab ("Animal species")+
+  theme(axis.text.x = element_text(angle=90, hjust=1, vjust = 0.5), 
+        axis.title.x = element_text(vjust= -1),
+        axis.title.y = element_text(vjust= 3))+
+   scale_fill_viridis_c(option = 'D', trans = "log2", breaks = trans_breaks("log2", function(x) 2^x), name = "Number of outbreaks", na.value = "firebrick4")+
+ guides(fill = guide_colourbar(barwidth = 2, barheight = 10)) +
+  theme(text = element_text(size = 24)) 
+```
+Note: For some hamsters, the Latin name was not given in the reports, they are therefore named "hamster" here.
+
+\newpage
+
+## How many animals have died directly or indirectly from SARS-CoV-2?
+The figure below includes deaths that are directly related to an infection as well as deaths related to culling when implemented as control measure. <br>  
+**Note:** The number of deaths in mink is inconsistently reported and does not allow an accurate estimation of the true number of deaths.
+
+```{r deaths, fig.height=14, fig.width=18, echo=FALSE, message=FALSE, warning=FALSE}
+ sars_df %>%
+  filter (related_to_other_entries != "updated by") %>% # follow-up history reports are removed, only the last update is kept (so that the number of cases or outbreaks -depending on the question- is only counted once)
+  filter (!(related_to_other_entries == "living together" & control_measures %in% c("culling","selective culling"))) %>% # we remove animals that lived together and were culled because the number of deaths then appear several time in the data, i.e. for each event related to this specific farm.
+  filter (outcome != "death not related to Sars-CoV-2") %>%  # remove animals which death is probably not related to covid
+  mutate (number_deaths = replace(number_deaths, number_deaths == "NS", NA)) %>%# change NS to NA (mostly data on mink --> could be replaced by average size of mink farm for each country?)
+  mutate(number_deaths = as.numeric(as.character(number_deaths))) %>%
+  group_by(country_name, species) %>% 
+  summarise (number_deaths_tot= sum(number_deaths)) %>% 
+  ggplot(aes(country_name, species, fill= number_deaths_tot)) + 
+  geom_tile(color = "white")  +
+  coord_fixed()+ 
+  xlab("") + 
+  ylab ("Animal species")+
+  theme(axis.text.x = element_text(angle=90, hjust=1, vjust = 0.5), 
+        axis.title.x = element_text(vjust= -1),
+        axis.title.y = element_text(vjust= 3))+
+   scale_fill_viridis_c(option = 'D', trans = "sqrt", breaks = trans_breaks("sqrt", function(x) x^2),  name = "Number of deaths", na.value = "firebrick4") + # NA values (was NS in the data) are colored in firebrick
+  guides(fill = guide_colourbar(barwidth = 2, barheight = 10)) +
+  theme(text = element_text(size = 24)) 
+```
+Red color = Value non available.
+
+
+\newpage
+
+## What is the case fatality rate of SARS-CoV-2 in the different animal species, per country? 
+The case fatality rate (CFR) per species and country is obtained by dividing the total number of reported deaths in one species by the total number of reported cases for this species in the country. Animals culled as part of a control strategy are excluded (not all were diagnosed as infected). Similarly, mink are not included here because data on case and death numbers are partial. The CFR depends strongly on testing and does not give information on the infection fatality rate (IFR, number of deaths divided by the total number of infected individuals) or mortality rate (MR, number of deaths divided by the total at-risk population).<br>  
+```{r fatality, fig.height=14, fig.width=18,echo=FALSE, message=FALSE, warning=FALSE}
+# To visualize fcase atality rate (proportion of individuals who died from SARS-CoV-2 among all individuals diagnosed with the disease), we plot (number of reported deaths / number of reported cases) on the heat map
+# We removed culled animals because they did not all die from SARS-CoV-2
+sars_df %>%
+   filter (related_to_other_entries != "updated by") %>% # follow-up history reports are removed, only the last update is kept (so that the number of cases or outbreaks -depending on the question- is only counted once)
+  filter (!control_measures %in% c("culling", "selective culling")) %>%  # culled animals excluded
+  filter (outcome != "death not related to Sars-CoV-2") %>%  # remove animals which death is probably not related to covid
+  filter (species != "mink") %>% # mink are removed because data on cases and deaths are not accurate enough and most of them were culled
+  mutate (number_cases = replace(number_cases, number_cases == "NS", NA)) %>% # change NS to NA (mostly data on mink --> could be replaced by average size of mink farm for each country?)
+  mutate(number_cases = as.numeric(as.character(number_cases))) %>%
+  mutate (number_deaths = replace(number_deaths, number_deaths == "NS", NA)) %>%
+  mutate(number_deaths = as.numeric(as.character(number_deaths))) %>%
+  group_by(country_name, species) %>% 
+  summarise (fatality_rate= sum(number_deaths, na.rm = T)/sum(number_cases, na.rm = T)) %>% 
+  ggplot(aes(country_name, species, fill= fatality_rate)) +
+  geom_tile(color = "white")  +
+  coord_fixed()+ 
+  xlab("") + 
+  ylab ("Animal species")+
+  theme(axis.text.x = element_text(angle=90, hjust=1, vjust = 0.5), 
+        axis.title.x = element_text(vjust= -1),
+        axis.title.y = element_text(vjust= 3))+
+ scale_fill_viridis_c(option = 'D', trans = "sqrt",  breaks = trans_breaks("sqrt", function(x) x ^ 2), name = "Fatality rate", na.value = "firebrick4") +
+ guides(fill = guide_colourbar(barwidth = 2, barheight = 10)) +
+  theme(text = element_text(size = 24)) 
+
+# Export Fig. 3
+Fig3 <- sars_df %>%
+    filter (related_to_other_entries != "updated by") %>% # follow-up history reports are removed, only the last update is kept (so that the number of cases or outbreaks -depending on the question- is only counted once)
+  filter (!control_measures %in% c("culling", "selective culling")) %>%  
+  filter (outcome != "death not related to Sars-CoV-2") %>%  # remove animals which death is probably not related to covid
+  filter (species != "mink") %>% # mink are removed because data on cases and deaths are not accurate enough and most of them were culled
+  mutate (number_cases = replace(number_cases, number_cases == "NS", NA)) %>% # change NS to NA (mostly data on mink --> could be replaced by average size of mink farm for each country?)
+  mutate(number_cases = as.numeric(as.character(number_cases))) %>%
+  mutate (number_deaths = replace(number_deaths, number_deaths == "NS", NA)) %>%
+  mutate(number_deaths = as.numeric(as.character(number_deaths))) %>%
+  group_by(country_name, species) %>% 
+  summarise (fatality_rate= sum(number_deaths, na.rm = T)/sum(number_cases, na.rm = T)) %>% 
+  ggplot(aes(country_name, species, fill= fatality_rate)) +
+  geom_tile(color = "white")  +
+  coord_fixed()+ 
+  xlab("") + 
+  ylab ("Animal species")+
+  theme(axis.text.x = element_text(angle=45, hjust=1, vjust = 1), 
+        axis.title.x = element_text(vjust= -1),
+        axis.title.y = element_text(vjust= 3),
+        text = element_text(size = 9)) +
+  scale_fill_viridis_c(option = 'D', trans = "sqrt",  breaks = trans_breaks("sqrt", function(x) x ^ 2), name = "Fatality rate", na.value = "firebrick4") +
+  guides(fill = guide_colourbar(barwidth = 1, barheight = 6)) 
+
+ggsave("Fig3.eps", Fig3 , width = 18, height = 14, units="cm", dpi = 600) 
+ggsave("Fig3.tiff", Fig3 , width = 18, height = 14, units="cm", dpi = 600) 
+```
+Red color = Fatality rate could not be computed because number of cases and/or deaths is missing.
+
+\newpage
+
+
+## Which laboratory methods are used to detect infection with or exposure to SARS-CoV-2 in animals? 
+```{r tests, fig.height=14, fig.width=18, echo=FALSE, message=FALSE, warning=FALSE}
+# Type of tests used to detect SARS-CoV-2 infection in animals
+test_df <- sars_df %>%
+  select (species, test, test_2, test_3) 
+
+# Convert to long format
+test_df_melt <- melt (test_df, id.vars=c("species"))
+# remove NA value as well as records where test is not specified ("NS")
+test_df_melt <- test_df_melt %>%
+  filter(!is.na(value)) %>%
+  filter (value != "NS")
+
+# Heat map of the type of test used per species
+test_df_melt %>%
+  ggplot(aes(species, value)) +
+  geom_tile(color = "white", fill = "black")  +
+  coord_fixed()+ 
+  xlab("") + 
+  ylab ("")+
+  theme(axis.text.x = element_text(angle=45, hjust=1), 
+        axis.title.x = element_text(vjust= -1),
+        axis.title.y = element_text(vjust= 3),
+        text = element_text(size = 24)) 
+```
+\newpage
+
+
+## Why were animals tested for SARS-CoV-2?
+Note that only positive animals are reported in the dataset (investigations that led to negative results are not -or rarely- reported to the authorities or media).
+```{r reasons_testing, fig.height=14, fig.width=20,echo=FALSE, message=FALSE, warning=FALSE}
+# Reasons for testing
+reasons_df <- sars_df %>%
+  mutate(reason_for_testing = replace(reason_for_testing , reason_for_testing  == "NS", "not specified")) %>%
+  group_by(species,reason_for_testing) %>%
+  tally()
+
+reasons_df %>%
+  ggplot(aes(species, reason_for_testing, fill = n)) +
+  geom_tile(color = "white")  +
+  coord_fixed()+ 
+  xlab("") + 
+  ylab ("")+
+  theme(axis.text.x = element_text(angle=45, hjust=1),
+        axis.title.x = element_text(vjust= -1),
+        axis.title.y = element_text(vjust= 3),
+        text = element_text(size = 22))+
+  scale_fill_viridis_c(option = 'D', trans = "log2",  breaks = trans_breaks("log2", function(x) 2^x), name = "Number of events", na.value = "firebrick4") +
+  guides(fill = guide_colourbar(barwidth = 2, barheight = 10)) 
+
+# Export Fig. 5
+Fig5 <- reasons_df %>%
+  ggplot(aes(species, reason_for_testing, fill = n)) +
+  geom_tile(color = "white")  +
+  coord_fixed()+ 
+  xlab("") + 
+  ylab ("")+
+  theme(axis.text.x = element_text(angle=45, hjust=1),
+        axis.title.x = element_text(vjust= -1),
+        axis.title.y = element_text(vjust= 3),
+        text = element_text(size = 9)) +
+  scale_fill_viridis_c(option = 'D', trans = "log2",  breaks = trans_breaks("log2", function(x) 2^x), name = "Number of events", na.value = "firebrick4")+
+  guides(fill = guide_colourbar(barwidth = 1, barheight = 4))
+
+ggsave("Fig5.eps", Fig5 , width = 18, height = 14, units="cm", dpi = 600) 
+ggsave("Fig5.tiff", Fig5 , width = 18, height = 14, units="cm", dpi = 600) 
+```
+
+\newpage
+
+## What are the reported potential sources of SARS-CoV-2 infection or exposure in animals?
+Several reports referred to "an undetected human case" as the most likely source of infection. Those were given the value "NS" in the dataset because the information was considered not specific enough. The source of infection was reported as "human” only when the report mentioned a contact with a confirmed human case as the most likely source of infection.
+```{r sources, fig.height=10, fig.width=10, echo=FALSE, message=FALSE, warning=FALSE}
+# Suspected sources of infection
+sars_df %>%
+   filter (related_to_other_entries != "updated by") %>% # follow-up history reports are removed, only the last update is kept (so that the number of cases or outbreaks -depending on the question- is only counted once)
+  group_by(source_of_infection) %>%
+  tally() %>% 
+  mutate(perc = n*100/sum(n)) %>% 
+  ggplot(aes(x=source_of_infection, y=perc, fill=source_of_infection)) +
+  geom_bar(stat="identity") +
+  xlab("") +
+  ylab ("Percentage") +
+  scale_fill_brewer(palette = "Dark2") +
+  theme_bw() +
+  theme(legend.position="none") +
+  theme(text = element_text(size = 24)) 
+```
+NS = Not specified.
+\newpage
+
+## Which SARS-CoV-2 variants have been identified in the different animal species? 
+The figures describe the number (and percentages) of **events** (one event may include one or more than one cases).
+```{r variants_perc, fig.height=15, fig.width=15, echo=FALSE, message=FALSE, warning=FALSE}
+## Percentage of reported variants among reported events
+variants_df <- sars_df %>%
+  filter (!is.na(variant)) %>% 
+  filter (variant != "NS") 
+
+perc.variants <- nrow(variants_df)/nrow(sars_df)
+```
+Variants involved in SARS-CoV-2 events in animal were reported in `r round(perc.variants,1)`% of the events (`r nrow(variants_df)`/`r nrow(sars_df)`). 
+
+```{r variants, fig.height=15, fig.width=15, echo=FALSE, message=FALSE, warning=FALSE, message=FALSE,}
+PieDonut(variants_df,aes(pies=species ,donuts=variant), selected=2,labelposition=1,title="", r0=0.7,
+         showPieName=FALSE, pieLabelSize = 5, donutLabelSize = 5, showRatioThreshold = 0.01)
+```
+
+```{r variants_Sankey, fig.height=20, fig.width=25, echo=FALSE, message=FALSE, warning=FALSE}
+# Another visualization of the variants per species
+n_col <- length(unique(sars_df$variant))
+palette <- distinctColorPalette(n_col)
+
+sars_df %>%
+  filter (!is.na(variant)) %>% 
+  filter (variant != "NS") %>% 
+  group_by(species, variant) %>% 
+  tally() %>% 
+  ggplot( aes(y = n, axis1 = species, axis2 = variant)) +
+  geom_alluvium(aes(fill = variant), width = 1/12) +
+  geom_stratum(alpha = .5) +
+  scale_x_discrete(limits = c("Species", "Variant"), expand = c(.05, .05)) +
+  scale_fill_manual(values=palette) +
+  ggtitle("")+  
+  theme_minimal()+
+  theme(legend.position = "none", 
+        axis.text.x = element_text(size = 35), 
+        axis.text.y = element_text(size = 35), 
+        axis.title.y = element_text(size = 30)) +
+  ggfittext::geom_fit_text(stat = "stratum", width = 1/6, min.size = 1, aes(label = after_stat(stratum)),grow = TRUE) +
+  ylab("Number of events")
+
+# Export Figure 4
+Fig4 <- sars_df %>%
+  filter (!is.na(variant)) %>% 
+  filter (variant != "NS") %>% 
+  group_by(species, variant) %>% 
+  tally() %>% 
+  ggplot( aes(y = n, axis1 = species, axis2 = variant)) +
+  geom_alluvium(aes(fill = variant), width = 1/12) +
+  geom_stratum(alpha = .5) +
+  scale_x_discrete(limits = c("Species", "Variant"), expand = c(.05, .05)) +
+  scale_fill_manual(values=palette) +
+  ggtitle("")+  
+  theme_minimal()+
+  theme(legend.position = "none", 
+        axis.text.x = element_text(size = 14), 
+        axis.text.y = element_text(size = 14), 
+        axis.title.y = element_text(size = 14)) +
+  ggfittext::geom_fit_text(stat = "stratum", width = 1/5, min.size = 1, aes(label = after_stat(stratum)),grow = TRUE) +
+  ylab("Number of events")
+
+ggsave("Fig4.eps", Fig4 , width = 22, height = 20, units="cm", dpi = 600) 
+ggsave("Fig4.eps", fallback_resolution=600, width = 22, height = 20, device=cairo_ps)
+
+```
+\newpage
+
+## What are the reported clinical signs allegedly associated to natural SARS-CoV-2 infections in the different animal species?
+The following bar plots summarize clinical signs of SARS-CoV-2 in some animal species after natural infection. The figures show the **number of events** in which each clinical sign was reported (one event may include one or more than one cases).<br>  
+
+### Cats
+```{r symptoms_cats, echo=FALSE, message=FALSE, warning=FALSE}
+
+sars_df %>%
+  filter (symptoms != "NS") %>%  # remove records where symptoms are not specified
+  filter (species == "cat") %>% # select the species of interest
+  group_by(symptoms) %>% 
+  tally()  %>% 
+  ggplot(aes(x=symptoms, y=n)) +
+  geom_bar(stat="identity")+ 
+  coord_flip() +
+  ylab("Number of events") +
+  xlab("") +
+  ggtitle("Symptoms reported in cats") +
+  theme_bw()+
+  theme(title = element_text(size=rel(0.8)))
+```
+
+### Dogs
+```{r symptoms_dog, echo=FALSE, message=FALSE, warning=FALSE}
+
+sars_df %>%
+  filter (symptoms != "NS") %>%  # remove records where symptoms are not specified
+  filter (species == "dog") %>% # select the species of interest
+  group_by(symptoms) %>% 
+  tally()  %>% 
+  ggplot(aes(x=symptoms, y=n)) +
+  geom_bar(stat="identity")+ 
+  coord_flip() +
+  ylab("Number of events") +
+  xlab("") +
+  ggtitle("Symptoms reported in dogs") +
+  theme_bw()+
+  theme(title = element_text(size=rel(0.8)))
+```
+
+### Captive animals
+```{r symptoms_catpive, echo=FALSE, message=FALSE, warning=FALSE}
+
+captive <- sars_df %>%
+  filter (symptoms != "NS") %>%  # remove records where symptoms are not specified
+  filter (living_conditions == "zoo") %>% # select the species of interest
+  group_by(species, symptoms) %>% 
+  tally() 
+
+n_col3 <- length(unique(captive$symptoms))
+palette3 <- distinctColorPalette(n_col3)
+
+ggplot(captive, aes(x=species, y=n, fill = symptoms)) + 
+  geom_bar(stat="identity", position=position_dodge())+ 
+  coord_flip() +
+  ylab("Number of events") + 
+  xlab("") + 
+  ggtitle("Symptoms reported in captive animals") + 
+  scale_fill_manual(values=palette3)  + 
+  theme_bw() + 
+  theme(legend.text=element_text(size=rel(0.6)), 
+        legend.title=element_text(size=rel(0.8)), 
+        title = element_text(size=rel(0.8)), 
+        legend.position="bottom") +
+  guides(fill=guide_legend(title="Symptoms"))
+```
+\newpage
+
+## What are the implemented control measures and possible outcomes after detection of SARS-CoV-2 infection or exposure in the different animal species?
+The computed network is saved as an .html file (network.html) in the working directory. <br>  
+The network shows, for each animal species (blue nodes), which control measures (yellow nodes) have been implemented in response to SARS-CoV-2 outbreaks (e.g. treatment, culling, exclusion zone) and what was the outcome (red nodes) for the animals (e.g. death, recovery). <br>  
+The size of each node in the network corresponds to the number of times the value appears in the dataset. <br>  
+```{r network, echo=FALSE, message=FALSE, warning=FALSE}
+# Nodes
+# We create nodes weighted with the number of time the species, control measures or outcome occur in the dataset
+nodes_col1 <- sars_df %>%
+ group_by(species) %>%
+  tally()
+colnames(nodes_col1) <- c("label", "value")
+
+nodes_col2 <- sars_df %>%
+  group_by(control_measures) %>%
+  tally()%>% 
+  mutate(control_measures = replace(control_measures, control_measures == "NS", "none")) %>% 
+  mutate(control_measures = replace(control_measures, is.na(control_measures), "not applicable"))
+colnames(nodes_col2) <- c("label", "value")
+
+nodes_col3 <- sars_df %>%
+  group_by(outcome) %>%
+  tally()%>%
+  mutate(outcome = replace(outcome, outcome == "NS", "unknown"))
+colnames(nodes_col3) <- c("label", "value")
+
+
+nodes_col4 <- rbind(nodes_col1, nodes_col2, nodes_col3)
+
+vertices.id <- c(0:(nrow(nodes_col4)-1))
+
+nodes <- cbind.data.frame (vertices.id, nodes_col4)
+nodes <- nodes %>%
+  mutate(group = case_when (label %in% c(nodes_col1$label) ~ "Species",
+                            label %in%  c(nodes_col2$label)~"Control measure",
+                            label %in%  c(nodes_col3$label) ~ "Outcome"))
+
+colnames(nodes) <- c("id", "label", "value","group")
+
+#id has to be the same like from and to columns in edges
+nodes$id <- nodes$label
+
+# Edges
+edges_df <-  sars_df %>%
+  group_by(species, control_measures, outcome) %>%
+  tally() %>% 
+  mutate(control_measures = replace(control_measures, control_measures == "NS", "none")) %>% 
+  mutate(control_measures = replace(control_measures, is.na(control_measures), "not applicable")) %>% 
+  mutate(outcome = replace(outcome, outcome == "NS", "unknown")) 
+  
+edges_df1 <- edges_df %>%
+  select(species, control_measures, n) 
+colnames(edges_df1) <- c("from", "to", "width")
+
+edges_df2 <- edges_df[,-1]
+colnames(edges_df2) <- c("from", "to", "width")
+
+edges_df3 <- rbind(edges_df1, edges_df2)
+edges_df3 <- as.data.frame(edges_df3)
+
+# Do not weight the edges (only nodes will be)
+# Do not run this command if you want to weight the vertices
+edges_df3 <- edges_df3 %>%
+  select (-width) 
+  
+# Give font size to the node labels
+nodes <- nodes %>% mutate(font.size = 20)
+
+network <- visNetwork(nodes, edges_df3) %>%
+  visPhysics(solver = "barnesHut", enabled = FALSE) %>%
+  visLegend(enabled = TRUE, useGroups = TRUE) # to add legend
+
+# Save as html file (the html file is saved in your working directory)
+visSave(network, "network.html", selfcontained = TRUE, background = "white")
+```
