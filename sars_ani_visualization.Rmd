@@ -381,7 +381,7 @@ Red color = Value non available.
 ## What is the case fatality rate of SARS-CoV-2 in the different animal species, per country? 
 The case fatality rate (CFR) per species and country is obtained by dividing the total number of reported deaths in one species by the total number of reported cases for this species in the country. Animals culled as part of a control strategy are excluded (not all were diagnosed as infected). Similarly, mink are not included here because data on case and death numbers are partial. The CFR depends strongly on testing and does not give information on the infection fatality rate (IFR, number of deaths divided by the total number of infected individuals) or mortality rate (MR, number of deaths divided by the total at-risk population).<br>  
 ```{r fatality, fig.height=14, fig.width=18,echo=FALSE, message=FALSE, warning=FALSE}
-# To visualize fcase atality rate (proportion of individuals who died from SARS-CoV-2 among all individuals diagnosed with the disease), we plot (number of reported deaths / number of reported cases) on the heat map
+# To visualize the case fatality rate (proportion of individuals who died from SARS-CoV-2 among all individuals diagnosed with the disease), we plot (number of reported deaths / number of reported cases) on the heat map
 # We removed culled animals because they did not all die from SARS-CoV-2
 sars_df %>%
    filter (related_to_other_entries != "updated by") %>% # follow-up history reports are removed, only the last update is kept (so that the number of cases or outbreaks -depending on the question- is only counted once)
@@ -402,7 +402,7 @@ sars_df %>%
   theme(axis.text.x = element_text(angle=90, hjust=1, vjust = 0.5), 
         axis.title.x = element_text(vjust= -1),
         axis.title.y = element_text(vjust= 3))+
- scale_fill_viridis_c(option = 'D', trans = "sqrt",  breaks = trans_breaks("sqrt", function(x) x ^ 2), name = "Fatality rate", na.value = "firebrick4") +
+ scale_fill_viridis_c(option = 'D', trans = "sqrt",  breaks = trans_breaks("sqrt", function(x) x ^ 2), name = "Case fatality rate", na.value = "firebrick4") +
  guides(fill = guide_colourbar(barwidth = 2, barheight = 10)) +
   theme(text = element_text(size = 24)) 
 
@@ -427,7 +427,7 @@ Fig3 <- sars_df %>%
         axis.title.x = element_text(vjust= -1),
         axis.title.y = element_text(vjust= 3),
         text = element_text(size = 9)) +
-  scale_fill_viridis_c(option = 'D', trans = "sqrt",  breaks = trans_breaks("sqrt", function(x) x ^ 2), name = "Fatality rate", na.value = "firebrick4") +
+  scale_fill_viridis_c(option = 'D', trans = "sqrt",  breaks = trans_breaks("sqrt", function(x) x ^ 2), name = "Case fatality rate", na.value = "firebrick4") +
   guides(fill = guide_colourbar(barwidth = 1, barheight = 6)) 
 
 ggsave("Fig3.eps", Fig3 , width = 18, height = 14, units="cm", dpi = 600) 
