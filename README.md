@@ -73,6 +73,8 @@ dataset and reasons for exclusion. <br>
 The [SARS-ANI Dashboard](https://vis.csh.ac.at/sars-ani) provides
 interactive visualizations of the dynamic version of the dataset. <br>
 
+**The data on this repository is weekly updated.**
+
 ## Prerequisite <a name="Prerequisite"></a>
 
 #### Install LaTeX (TinyTeX) for PDF reports
@@ -145,8 +147,9 @@ depends on the reporting strategy of the country to the OIE, the
 intensity of the research and surveillance strategy in the different
 animal species (e.g. whether pets from infected households are
 systematically investigated or not), the media coverage on the diagnosed
-cases, and the uptake of the reported event by the ProMED-mail team.
-<br>
+cases, and the uptake of the reported event by the ProMED-mail team. If
+an event/outbreak is not published in OIE-WAHIS and/or ProMED-mail then
+it will not be included in the dataset.<br>
 
 ### Data collection process
 
