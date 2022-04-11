@@ -590,7 +590,7 @@ Fig4 <- sars_df %>%
   ggfittext::geom_fit_text(stat = "stratum", width = 1/5, min.size = 1, aes(label = after_stat(stratum)),grow = TRUE) +
   ylab("Number of events")
 
-ggsave("Fig4.eps", Fig4 , width = 22, height = 20, units="cm", dpi = 600) 
+ggsave("Fig4.tiff", Fig4 , width = 22, height = 20, units="cm", dpi = 600) 
 ggsave("Fig4.eps", fallback_resolution=600, width = 22, height = 20, device=cairo_ps)
 
 ```
