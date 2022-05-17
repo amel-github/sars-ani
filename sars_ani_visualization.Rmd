@@ -301,7 +301,6 @@ The number of cases in mink is inconsistently (or even not at all) reported. The
 sars_df %>%
   filter (related_to_other_entries != "updated by") %>% # follow-up history reports are removed, only the last update is kept (so that the number of cases or outbreaks -depending on the question- is only counted once)
   mutate(latin_name = replace(latin_name , latin_name  == "NS", "hamster")) %>% # replace missing value for hamster
-  group_by(latin_name,reason_for_testing) %>%
   mutate (number_cases = replace(number_cases, number_cases == "NS", NA)) %>% # change NS to NA (mostly data on mink --> could be replaced by average size of mink farm for each country?)
   mutate(number_cases = as.numeric(as.character(number_cases))) %>%
   group_by(country_name, latin_name) %>% 
