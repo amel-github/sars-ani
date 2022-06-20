@@ -1,14 +1,15 @@
 README
 ================
-April, 2022
+June, 2022
 
 [Background](#Background)  
-[About this repository](#About%20this%20repository)  
+[About this repository](#AboutthisRepository)  
 [Prerequisite](#Prerequisite)  
 [About the data](#Data)  
 [Contributors](#Contributors)  
 [License](#License)  
-[Contact](#Contact)
+[Contact](#Contact)  
+[Disclaimer](#Disclaimer)
 
 # SARS-ANI: A Global Open Access Dataset of Reported SARS-CoV-2 Events in Animals
 
@@ -29,7 +30,7 @@ animals is of critical importance to assess their epidemiological
 significance for animal and human health, as well as their implications
 for biodiversity and conservation. <br>
 
-## About this repository <a name="About this Repository"></a>
+## About this repository <a name="AboutthisRepository"></a>
 
 This is the public repository of the SARS-ANI Dataset and related
 documentation. <br>
@@ -65,10 +66,10 @@ recorded in the dataset, a copy of the report used as primary and
 secondary information source is saved in this folder. Each report was
 downloaded as a .pdf file, on which a timestamp was inserted
 (ProMED-mail reports) or the download date was added to the file name
-(it was not possible to insert a timestamp on OIE-WAHIS reports). <br>  
+(it was not possible to insert a timestamp on WAHIS reports). <br>  
 **<code>sars_ani_excluded_rep.xlsx</code>**: This file contains the list
-of ProMED-mail and OIE-WAHIS reports that were not included in the
-dataset and reasons for exclusion. <br>
+of ProMED-mail and WAHIS reports that were not included in the dataset
+and reasons for exclusion. <br>
 
 The [SARS-ANI Dashboard](https://vis.csh.ac.at/sars-ani) provides
 interactive visualizations of the dynamic version of the dataset. <br>
@@ -99,10 +100,13 @@ To know more about local environment, see:
 
 ### Data sources
 
-Information has been collected from two major databases: the Program for
-Monitoring Emerging Diseases [ProMED-mail](https://promedmail.org/) and
-the World Organisation for Animal Health (OIE) World Animal Health
-Information System [OIE-WAHIS](https://wahis.oie.int/). <br>
+Information has been collected from two major databases: i) the Program
+for Monitoring Emerging Diseases [ProMED-mail](https://promedmail.org/),
+which is a program of the International Society for Infectious Diseases
+([ISID](https://isid.org/)); ii) the World Animal Health Information
+System [WAHIS](https://wahis.woah.org/) of the World Organisation for
+Animal Health ([WOAH](https://wahis.woah.org/#/home), formerly OIE).
+<br>
 
 [ProMED-mail](https://promedmail.org/) is the largest publicly available
 system reporting of global infectious disease outbreaks. It provides
@@ -118,23 +122,23 @@ accountability and accuracy of the information, interpret it, provide
 commentary, and give references to previous ProMED-mail reports and to
 the scientific literature. <br>
 
-[OIE-WAHIS](https://wahis.oie.int/) is a Web-based computer system that
-processes data on animal diseases in real-time. OIE-WAHIS data reflects
-the information gathered by the Veterinary Services from OIE Members and
-non-Members Countries and Territories on OIE-listed diseases in domestic
-animals and wildlife, as well as on emerging and zoonotic diseases. The
-detection of infection with SARS-CoV-2 in animals meets the criteria for
-reporting to the World Animal Health Organisation (OIE) as an emerging
-infection in accordance with the OIE Terrestrial Animal Health Code.
-Only authorized users, i.e. the Delegates of OIE Member Countries and
-their authorised representatives, can enter data into the OIE-WAHIS
-platform to notify the OIE of relevant animal disease information. All
-information are publicly accessible on the
-[OIE-WAHIS](https://wahis.oie.int/) interface. <br>
+[WAHIS](https://wahis.woah.org/) is a Web-based computer system that
+processes data on animal diseases in real-time. WAHIS data reflects the
+information gathered by the Veterinary Services from WOAH Members and
+non-Members Countries and Territories on WOAH-listed diseases in
+domestic animals and wildlife, as well as on emerging and zoonotic
+diseases. The detection of infection with SARS-CoV-2 in animals meets
+the criteria for reporting to the World Animal Health Organisation
+(WOAH) as an emerging infection in accordance with the WOAH Terrestrial
+Animal Health Code. Only authorized users, i.e. the Delegates of WOAH
+Member Countries and their authorised representatives, can enter data
+into the WAHIS platform to notify the WOAH of relevant animal disease
+information. All information are publicly accessible on the
+[WAHIS](https://wahis.woah.org/#/events) interface. <br>
 
-One ProMED-mail or OIE-WAHIS report, identified via a unique report
+One ProMED-mail or WAHIS report, identified via a unique report
 identifier, may depict one single or several health events (or
-outbreaks). ProMED-mail and OIE-WAHIS also publish follow-up reports of
+outbreaks). ProMED-mail and WAHIS also publish follow-up reports of
 outbreaks (describing e.g. clinical follow-up, further spread of the
 virus, treatment outcome, number of newly infected animals and new
 deaths, newly implemented control measures) that have also been entered
@@ -143,13 +147,13 @@ in the dataset. <br>
 ### Remarks
 
 The number of reported SARS-CoV-2 events in animals in each country
-depends on the reporting strategy of the country to the OIE, the
+depends on the reporting strategy of the country to the WOAH, the
 intensity of the research and surveillance strategy in the different
 animal species (e.g. whether pets from infected households are
 systematically investigated or not), the media coverage on the diagnosed
 cases, and the uptake of the reported event by the ProMED-mail team. If
-an event/outbreak is not published in OIE-WAHIS and/or ProMED-mail then
-it will not be included in the dataset.<br>
+an event/outbreak is not published in WAHIS and/or ProMED-mail then it
+will not be included in the dataset.<br>
 
 ### Data collection process
 
@@ -189,8 +193,8 @@ The dataset is structured such as: <br>
 infection/exposure in animal(s).<br>
 
 <code>primary_source</code> Primary source of information to document
-the event. Possible pre-defined string values are: *ProMED*;
-*OIE-WAHIS*. <br>
+the event. Possible pre-defined string values are: *ProMED*; *WAHIS*.
+<br>
 
 <code>archive_event_number</code> Unique identifier for the report, as
 provided by the primary source. Also corresponds to the name of the PDF
@@ -198,11 +202,10 @@ file describing the event in the <code>sars_ani_PDF_archives</code>
 folder. <br>
 
 <code>link_web</code> Link to the online primary source to document the
-event.<br>
-
+event.<br>  
 <code>secondary_source</code> Secondary source of information to
 document the event. Possible pre-defined string values are: *ProMED*;
-*OIE-WAHIS*.<br>
+*WAHIS*.<br>
 
 <code>secondary_source_ID</code> Unique identifier for the report, as
 provided by the secondary source. Also corresponds to the name of the
@@ -212,11 +215,30 @@ folder.<br>
 <code>secondary_source_web</code> Link to the online secondary source
 for the event.<br>
 
-<code>species</code> Common name of the animal species. <br>
+<code>host_com_orig</code> Most specific designation of the animal host
+provided by the source(s), in English. <br>
 
-<code>latin_name</code> Scientific name of the animal species. <br>
+<code>host_sci_orig</code> Scientific name of the animal host as
+mentioned in the source(s) (scientific names are harmonized so that only
+the first letter of the genus is capitalized). <br>
 
-<code>family</code> Animal family of the animal species. <br>
+<code>host_com_res</code> Common name of the animal host, harmonized
+against the National Center for Biotechnology Information
+([NCBI](https://www.ncbi.nlm.nih.gov/)) taxonomic backbone.<br>
+
+<code>host_sci_res</code> Scientific name of the animal host (resolved
+to species or subspecies level), harmonized against the National Center
+for Biotechnology Information ([NCBI](https://www.ncbi.nlm.nih.gov/))
+taxonomic backbone.<br>
+
+<code>host_colloq</code> The colloquial name of the host, i.e. the name
+commonly used to identify the animal in non-specialist language
+(e.g. “tiger” for “Sumatran tiger”).<br>
+
+<code>host_sci_spec_res</code> The scientific name of the host resolved
+to the species level.<br>
+
+<code>family</code> Animal family of the animal host. <br>
 
 <code>epidemiological_unit</code> The epidemiological unit considered to
 describe the event. Possible pre-defined string values are: *animal* =
@@ -224,16 +246,15 @@ one individual; *group* = a group of animals housed/living together
 (excluding farm animals), e.g. zoo animals, pets; *survey group* =
 animals that have been sampled in different locations within the same
 surveillance programme or survey study; *farm*: a group of animals
-belonging to the species and bred for commercial purposes. <br>
-
+belonging to the same species and bred for commercial purposes. <br>  
 <code>number_cases</code> Reported number of animal(s) tested positive
 for SARS-CoV-2 in the event. <br>
 
 <code>number_susceptible</code> Reported number of susceptible animal(s)
-in the event. <br>
+of the same species in the event. <br>
 
-<code>number_tested</code> Reported number of animal(s) tested in the
-event.<br>
+<code>number_tested</code> Reported number of animal(s) of the same
+species tested in the event.<br>
 
 <code>number_deaths</code> Reported number of direct and indirect
 death(s) related to the event. If death is not related to SARS-CoV-2
@@ -244,8 +265,8 @@ death(s) related to the event. If death is not related to SARS-CoV-2
 <code>sex</code> Sex of the animal(s). Possible pre-defined values are:
 *f* = female; *m* = male. <br>
 
-<code>country_iso3</code> 3-digit ISO country code for the country where
-the SARS-CoV-2 event was reported.<br>
+<code>country_iso3</code> Three-digit ISO country code for the country
+where the SARS-CoV-2 event was reported.<br>
 
 <code>country_name</code> Name of the country where the SARS-CoV-2 event
 was reported. <br>
@@ -266,33 +287,34 @@ same place (e.g. different farms or households). <br>
 was laboratory confirmed. <br>
 
 <code>date_reported</code> When the SARS-CoV-2 event was reported by the
-OIE-WAHIS. <br>
+WAHIS. <br>
 
 <code>date_published</code> When the primary source published the
 SARS-CoV-2 event (<code>date_published</code> =
-<code>date_reported</code> when OIE-WAHIS is the primary source). <br>
+<code>date_reported</code> when WAHIS is the primary source). <br>
 
 <code>related_to_other_entries</code> Relationship with another record
 (see field <code>related_ID</code>) in the dataset. Possible pre-defined
 string values are: *new* = the event is not related to any event
 previously entered in the dataset and no follow-up event exists but it
-can be related to an event that occurs on the same day or later in time
-with one of the following values: <code>related_to_other_entries</code>
-= *living together* or <code>related_to_other_entries</code> =
-*connected* or <code>related_to_other_entries</code> = *same study*;
-*updated by* = the event has a follow-up event in the dataset, which
-itself presents the value *update of*. Therefore, a *new* event gets the
-value *updated by* when a follow-up related event is entered; *update
-of* = the event is a follow-up of an event previously entered in the
-dataset; *living together* = the animal(s) described in the event
-share(s) the same geolocation (e.g. farm, household, pet store) as
-another (other) animal(s) that has/have been previously entered in the
-dataset; *same study* = the event reports infection in animal(s)
-belonging to a study that was previously entered in the dataset;
-*connected* = the event is epidemiologically related to a previously
-reported event in the dataset (e.g. SARS-CoV-2 events in pet hamsters in
-pet shops in Hong Kong, following a single importation of infected
-individuals from the Netherlands). <br>
+can be related to an event that was reported on the same day or later in
+time with one of the following values:
+<code>related_to_other_entries</code> = *living together* or
+<code>related_to_other_entries</code> = *connected* or
+<code>related_to_other_entries</code> = *same study*; *updated by* = the
+event has a follow-up event in the dataset, which itself presents the
+value *update of*. Therefore, a *new* event gets the value *updated by*
+when a follow-up related event is entered; *update of* = the event is a
+follow-up of an event previously entered in the dataset; *living
+together* = the animal(s) described in the event share(s) the same
+geolocation (e.g. farm, household, pet store) as another (other)
+animal(s) that has/have been previously entered in the dataset; *same
+study* = the event reports infection in animal(s) belonging to a study
+that was previously entered in the dataset; *connected* = the event is
+epidemiologically related to a previously reported event in the dataset
+(e.g. SARS-CoV-2 events in pet hamsters in pet shops in Hong Kong,
+following a single importation of infected individuals from the
+Netherlands). <br>
 
 <code>related_ID</code> Unique identifier of the related entry in the
 dataset. <br>
@@ -393,3 +415,10 @@ for details.
 
 [Amélie Desvars-Larrive](https://github.com/amel-github) <br> Email:
 [amelie.desvars@vetmeduni.ac.at](amelie.desvars@vetmeduni.ac.at)
+
+## Disclaimer <a name="Disclaimer"></a>
+
+*The World Organisation for Animal Health (WOAH) bears no responsibility
+for the integrity or accuracy of the data contained herein, in
+particular due, but not limited to, any deletion, manipulation, or
+reformatting of data that may have occurred beyond its control.*
