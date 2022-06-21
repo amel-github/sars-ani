@@ -183,7 +183,7 @@ The dataset is structured such as: <br>
     (e.g. follow-up on the clinical status of the animal, variant
     identification after case confirmation). <br>
 
--   Each SARS-CoV-2 event is characterized by 46 quantitative and
+-   Each SARS-CoV-2 event is characterized by 50 quantitative and
     qualitative event and patient attributes (**columns**) that
     structure the dataset. <br>
 
