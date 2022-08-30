@@ -1,7 +1,7 @@
 ---
 title: 'SARS-ANI: A Global Open Access Dataset of Reported SARS-CoV-2 Events in Animals
   - Visualization'
-author: ''
+author: 'SARS-ANI Team'
 date: ''
 output:
   pdf_document: default
@@ -261,6 +261,7 @@ kable(sars_to_plot_outbreaks_2, booktabs = T,
 ## How many SARS-CoV-2 cases (infections and/or exposures) have been reported per animal species? 
 
 ### Family, scientific name, common name of the animal hosts mentioned in the dataset, and reported number of SARS-CoV-2 cases.  <br> 
+**Table 3 above** <br>  
 *NCBI-resolved common and scientific names are displayed*.<br>  
 *Scientific name for the species "hamster" is inconsistently reported and is therefore given the value "NS" when not specified.* <br>  
 *Number of cases is reported inconsistently in mink (data on the number of cases in mink is missing most of the time). Therefore, the number of diagnosed cases is largely under-estimated in mink. This is also true for deer, but to a lesser extent.* <br>  
@@ -277,7 +278,7 @@ table_species <- sars_df %>%
   dplyr::arrange(-number_cases_tot)
 ```
 
-The dataset reports `r sum(table_species$number_cases_tot)` cases in total (we counted one case for any missing value on the number of cases).
+The dataset reports `r sum(table_species$number_cases_tot)` cases in total **(we counted one case for any missing value on the number of cases)**.
 
 ```{r species_families_table, echo=FALSE, message=FALSE, warning=FALSE}
 # Table of the data
@@ -449,7 +450,7 @@ Fig3 <- sars_df %>%
   coord_fixed()+ 
   xlab("") + 
   ylab ("Animal host") +
-  theme(axis.text.x = element_text(angle=90, hjust=1, vjust = 1), 
+  theme(axis.text.x = element_text(angle=90, hjust=1, vjust = 0.3), 
         axis.title.x = element_text(vjust= -1),
         axis.title.y = element_text(vjust= 3),
         text = element_text(size = 9)) +
@@ -521,7 +522,7 @@ Fig5 <- reasons_df %>%
   coord_fixed()+ 
   xlab("") + 
   ylab ("")+
-  theme(axis.text.x = element_text(angle=90, hjust=1),
+  theme(axis.text.x = element_text(angle=90, hjust=1, vjust = 0.2),
         axis.title.x = element_text(vjust= -1),
         axis.title.y = element_text(vjust= 3),
         text = element_text(size = 9)) +
