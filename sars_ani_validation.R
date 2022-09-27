@@ -106,7 +106,7 @@ Sys.getenv("ENTREZ_KEY")
 
 # Resolve taxonomic names - scientific names (check misspelling)
 # Using the Global Names Resolver (GNR) service provided by the Encyclopedia of Life http://resolver.globalnames.org/.
-# The prefered data source is set to the National Center for Biotechnology Information (NCBI) https://www.ncbi.nlm.nih.gov/  
+# The preferred data source is set to the National Center for Biotechnology Information (NCBI) https://www.ncbi.nlm.nih.gov/  
 ### First remove "NS" from the list of Latin names
 list_sci <- unique(sars_df$host_sci_orig)[!unique(sars_df$host_sci_orig) %in% "NS"] # remove the "NS" from the list
 gnr_res_sci <- gnr_resolve (sci  = list_sci, preferred_data_sources = "4") 
